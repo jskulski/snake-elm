@@ -185,20 +185,20 @@ renderBoard model =
         , "top" => "0"
         ]
     ]
-    [ renderSnake model.snake ]
+    [ toHtml
+        <| container 600 480 middle
+        <| collage 600 480
+        <| [ renderSnake model.snake ]
+    ]
 
 
-renderSnake : Snake -> Html Msg
+renderSnake : Snake -> Form
 renderSnake snake =
-    toHtml <|
-    container 600 480 middle <|
-    collage 600 480
-        [ circle 30
+        circle 30
           |> make snake.head
-        ]
 
 
-
+make : ( Float, Float ) -> Shape -> Form
 make (x, y) shape =
   shape
     |> filled (rgb 10 120 10)
