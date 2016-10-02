@@ -56,7 +56,6 @@ init =
 type Msg
     = TimeUpdate Time
     | KeyDown KeyCode
-    | KeyUp KeyCode
 
 
 -- update
@@ -70,9 +69,6 @@ update msg model =
 
         KeyDown keycode ->
             ( { snake = changeDirection model.snake (direction keycode) } , Cmd.none)
-
-        KeyUp keycode ->
-            ( model, Cmd.none)
 
 
 
@@ -142,7 +138,6 @@ subscriptions model =
     Sub.batch
         [ AnimationFrame.diffs TimeUpdate
         , Keyboard.downs KeyDown
-        , Keyboard.ups KeyUp
         ]
 
 -- VIEW
