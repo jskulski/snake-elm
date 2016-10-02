@@ -1,13 +1,14 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, text)
+import Html.Attributes exposing (style)
 import Html.App as Html
 import AnimationFrame
 import Time exposing (Time)
 import Keyboard exposing (..)
 
 
-
+import Collage
 
 -- MODEL
 
@@ -53,13 +54,6 @@ init =
       }
       , Cmd.none )
 
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    div [] [ text (toString model) ]
 
 -- MESSAGES
 
@@ -107,7 +101,7 @@ changeDirection { head, tail, direction } newDirection =
 
 
 moveOnce : Snake -> Snake
-moveOnce { head, tail , direction } =
+moveOnce { head, tail, direction } =
     let
         moveFunction = functionFromDirection direction
     in
@@ -155,6 +149,49 @@ subscriptions model =
         , Keyboard.downs KeyDown
         , Keyboard.ups KeyUp
         ]
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ renderState model
+        , renderBoard model
+        ]
+
+
+renderState : Model -> Html Msg
+renderState model =
+    div [ style
+            [ "position" => "absolute"
+            , "bottom" => "0"
+            , "left" => "0"
+            ]
+        ]
+        [ text (toString model) ]
+
+
+(=>) : a -> b -> (a, b)
+(=>) = (,)
+
+renderBoard : Model -> Html Msg
+renderBoard model =
+    div
+    [ style
+        [ "bottom" => "80px"
+        , "color" => "#34495f"
+        , "font-family" => "Helvetica, Arial, sans-serif"
+        , "font-size" => "14px"
+        , "left" => "300px"
+        , "padding" => "0 30px"
+        , "position" => "absolute"
+        , "right" => "0"
+        , "top" => "0"
+        ]
+    ]
+    [ text "hello" ]
+
 
 -- MAIN
 
