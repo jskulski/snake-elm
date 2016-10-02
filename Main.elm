@@ -7,12 +7,13 @@ import AnimationFrame
 import Time exposing (Time)
 import Keyboard exposing (..)
 
-
-import Collage
+import Color exposing (..)
+import Collage exposing (..)
+import Element exposing (..)
 
 -- MODEL
 
-type alias Position = (Int, Int)
+type alias Position = (Float, Float)
 
 
 type Direction
@@ -20,12 +21,6 @@ type Direction
  | East
  | South
  | West
-
-
-type alias Point = (Int, Int)
-
-
-type alias P = Point
 
 
 type alias Snake =
@@ -169,7 +164,7 @@ renderState model =
             , "left" => "0"
             ]
         ]
-        [ text (toString model) ]
+        [ Html.text (toString model) ]
 
 
 (=>) : a -> b -> (a, b)
@@ -190,7 +185,24 @@ renderBoard model =
         , "top" => "0"
         ]
     ]
-    [ text "hello" ]
+    [ renderSnake model.snake ]
+
+
+renderSnake : Snake -> Html Msg
+renderSnake snake =
+    toHtml <|
+    container 600 480 middle <|
+    collage 600 480
+        [ circle 30
+          |> make snake.head
+        ]
+
+
+
+make (x, y) shape =
+  shape
+    |> filled (rgb 10 120 10)
+    |> move (x, y)
 
 
 -- MAIN
