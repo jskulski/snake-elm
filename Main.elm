@@ -36,8 +36,12 @@ type alias Apple =
     }
 
 
+type State = Pre | Playing | Over
+
+
 type alias Model =
     { snake: Snake
+    , state: State
     }
 
 
@@ -47,6 +51,7 @@ init =
                 , tail = [ (0, 1) ]
                 , direction = North
                 }
+      , state = Pre
       }
       , Cmd.none )
 
@@ -66,10 +71,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TimeUpdate dt ->
-            ( { snake = moveOnce model.snake }, Cmd.none )
+            ( { snake = moveOnce model.snake
+              , state = Playing
+              }
+            , Cmd.none )
 
         KeyDown keycode ->
-            ( { snake = changeDirection model.snake (direction keycode) } , Cmd.none)
+            ( { snake = changeDirection model.snake (direction keycode)
+              , state = Playing
+              } , Cmd.none)
 
 
 
@@ -139,7 +149,10 @@ west (x, y) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ AnimationFrame.diffs TimeUpdate
+        [ if model.state == Playing then
+            AnimationFrame.diffs TimeUpdate
+          else
+            Sub.none
         , Keyboard.downs KeyDown
         ]
 
