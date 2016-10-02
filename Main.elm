@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Maybe exposing (Maybe)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Html.App as Html
@@ -72,23 +73,25 @@ update msg model =
 
 
 
-direction : Int -> Direction
+direction : Int -> Maybe Direction
 direction keycode =
     case keycode of
-        87 -> North
-        83 -> South
-        65 -> West
-        68 -> East
-        _ -> North
+        87 -> Just North
+        83 -> Just South
+        65 -> Just West
+        68 -> Just East
+        _ -> Nothing
 
 
 
-changeDirection : Snake -> Direction -> Snake
-changeDirection { head, tail, direction } newDirection =
-    { head = head
-    , tail = tail
-    , direction = newDirection
-    }
+changeDirection : Snake -> Maybe Direction -> Snake
+changeDirection { head, tail, direction } maybeDirection =
+    case maybeDirection of
+        Nothing -> { head = head , tail = tail, direction = direction }
+        Just newDirection -> { head = head
+                             , tail = tail
+                             , direction = newDirection
+                             }
 
 
 moveOnce : Snake -> Snake
@@ -186,18 +189,19 @@ renderBoard model =
         <| [ renderSnake model.snake ]
     ]
 
+skin = rgb 10 120 10
 
 renderSnake : Snake -> Form
 renderSnake snake =
         circle 30
-          |> make snake.head
+          |> make snake.head skin
 
 
-make : ( Float, Float ) -> Shape -> Form
-make (x, y) shape =
-  shape
-    |> filled (rgb 10 120 10)
-    |> move (x, y)
+make : Position -> Color -> Shape -> Form
+make (x, y) color shape =
+    shape
+        |> filled color
+        |> move (x, y)
 
 
 -- MAIN
