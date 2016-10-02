@@ -71,9 +71,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TimeUpdate dt ->
-            ( { snake = moveOnce model.snake
-              , state = Playing
-              }
+            ( { model | snake = moveOnce model.snake }
             , Cmd.none )
 
         KeyDown keycode ->
