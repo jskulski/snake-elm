@@ -61,7 +61,10 @@ init =
 
 type Msg
     = TimeUpdate Time
-    | KeyDown KeyCode
+    | StartGame
+    | Move Direction
+    | EndGame
+    | Noop
 
 
 -- update
@@ -71,39 +74,46 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TimeUpdate dt ->
-            ( { model | snake = moveOnce model.snake }
+            ( model
+              |> animate
+              |> tick
             , Cmd.none )
 
-        KeyDown keycode ->
-            ( { snake = changeDirection model.snake (direction keycode)
-              , state = Playing
-              } , Cmd.none)
+        StartGame ->
+            ( { model | state = Playing }
+            , Cmd.none )
+
+        EndGame ->
+            ( { model | state = Over }
+            , Cmd.none )
+
+        Move direction ->
+            ( { model | snake = changeDirection model.snake direction }
+            , Cmd.none )
+
+        Noop -> ( model, Cmd.none )
 
 
-
-direction : Int -> Maybe Direction
-direction keycode =
-    case keycode of
-        87 -> Just North
-        83 -> Just South
-        65 -> Just West
-        68 -> Just East
-        _ -> Nothing
+changeDirection : Snake -> Direction -> Snake
+changeDirection { head, tail, direction } newDirection =
+    { head = head
+    , tail = tail
+    , direction = newDirection
+    }
 
 
-
-changeDirection : Snake -> Maybe Direction -> Snake
-changeDirection { head, tail, direction } maybeDirection =
-    case maybeDirection of
-        Nothing -> { head = head , tail = tail, direction = direction }
-        Just newDirection -> { head = head
-                             , tail = tail
-                             , direction = newDirection
-                             }
+tick : Model -> Model
+tick model =
+    model
 
 
-moveOnce : Snake -> Snake
-moveOnce { head, tail, direction } =
+animate : Model -> Model
+animate model =
+    { model | snake = animateSnake model.snake }
+
+
+animateSnake : Snake -> Snake
+animateSnake { head, tail, direction } =
     let
         moveFunction = functionFromDirection direction
     in
@@ -151,8 +161,21 @@ subscriptions model =
             AnimationFrame.diffs TimeUpdate
           else
             Sub.none
-        , Keyboard.downs KeyDown
+        , Keyboard.downs keyToMsg
         ]
+
+
+
+keyToMsg : KeyCode -> Msg
+keyToMsg keycode =
+    case keycode of
+        32 -> StartGame
+        87 -> Move North
+        83 -> Move South
+        65 -> Move West
+        68 -> Move East
+        _  -> Noop
+
 
 -- VIEW
 
