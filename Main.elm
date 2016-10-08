@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Maybe exposing (Maybe)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Html.App as Html
@@ -11,6 +10,7 @@ import Keyboard exposing (..)
 import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
+
 
 -- MODEL
 
@@ -80,7 +80,7 @@ update msg model =
             (
               { model
               | snake = animateSnake model.snake
-              , gameState = hasSnakeDied model.snake displayHeight displayWidth
+              , gameState = hasSnakeDied model.snake displayWidth displayHeight
               }
             , Cmd.none )
 
@@ -118,9 +118,22 @@ animateSnake { head, tail, direction } =
         }
 
 
-hasSnakeDied : Snake -> Height -> Width -> GameState
-hasSnakeDied { head, tail, direction } height width =
-    Playing
+-- The game is over when the snake hits a wall
+hasSnakeDied : Snake -> Width -> Height -> GameState
+hasSnakeDied { head, tail, direction } displayHeight displayWidth =
+    let
+        (x, y) = head
+        buffer = 30.0
+        maxX = (toFloat displayWidth) / 2 + buffer
+        minX = negate maxX
+        maxY = (toFloat displayHeight / 2) + buffer
+        minY = negate maxY
+    in
+        if x > maxX || x < minY || y > maxY || y < minY then
+            Over
+        else
+            Playing
+
 
 
 
@@ -203,7 +216,10 @@ rendergameState model =
 (=>) : a -> b -> (a, b)
 (=>) = (,)
 
+displayHeight : Height
 displayHeight = 600
+
+displayWidth : Width
 displayWidth = 480
 
 
@@ -216,15 +232,17 @@ renderDisplay model =
         , "font-family" => "Helvetica, Arial, sans-serif"
         , "font-size" => "14px"
         , "left" => "300px"
-        , "padding" => "0 30px"
+        , "width" =>  "600px"
+        , "padding" => "0px"
         , "position" => "absolute"
         , "right" => "0"
         , "top" => "0"
+        , "border" => "1px dashed green"
         ]
     ]
     [ toHtml
-        <| container displayHeight displayWidth middle
-        <| collage displayHeight displayWidth
+        <| container displayWidth displayHeight middle
+        <| collage displayWidth displayHeight
         <| [ renderSnake model.snake ]
     ]
 
