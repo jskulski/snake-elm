@@ -37,7 +37,7 @@ type alias Snake =
 
 initialSnake : Snake
 initialSnake = { head = (0, 0)
-               , tail = []
+               , tail = [(0, 20)]
                , direction = North
                }
 
@@ -244,16 +244,38 @@ renderDisplay model =
     [ toHtml
         <| container displayWidth displayHeight middle
         <| collage displayWidth displayHeight
-        <| [ renderSnake model.snake ]
+        <| renderSnake model.snake
     ]
 
 skin : Color
 skin = rgb 10 120 10
 
-renderSnake : Snake -> Form
+lighterSkin : Color
+lighterSkin = rgb 20 160 20
+
+
+renderHead : Position -> Form
+renderHead (x, y) =
+    rect 10 10
+    |> filled skin
+    |> move (x, y)
+
+
+renderTail : List Position -> List Form
+renderTail tail =
+    case tail of
+        [] -> []
+        first::_ -> let
+                    (x, y) = first
+                 in
+                    [ rect 10 10
+                      |> filled skin
+                      |> move (x, y)
+                    ]
+
+renderSnake : Snake -> List Form
 renderSnake snake =
-        rect 30 20
-          |> make snake.head skin
+    renderHead snake.head :: renderTail snake.tail
 
 
 make : Position -> Color -> Shape -> Form
