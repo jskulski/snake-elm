@@ -29,12 +29,20 @@ type Direction
  | West
 
 
+type alias Size = Int
+
 type alias Snake =
     { head: Position
     , tail: List Position
     , direction: Direction
+    , size: Int
     }
 
+initialSnake = { head = (0, 0)
+               , tail = [ (0, 1) ]
+               , direction = North
+               , size = 1
+               }
 
 type alias Apple =
     { position: Position
@@ -52,10 +60,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { snake = { head = (0, 0)
-                , tail = [ (0, 1) ]
-                , direction = North
-                }
+    ( { snake = initialSnake
       , gameState = Pre
       }
       , Cmd.none )
@@ -81,7 +86,7 @@ update msg model =
         TimeUpdate dt ->
             (
               { model
-              | snake = animateSnake model.snake
+              | snake = tickSnake model.snake
               , gameState = hasSnakeDied model.snake displayWidth displayHeight
               }
             , Cmd.none )
@@ -102,21 +107,18 @@ update msg model =
 
 
 changeDirection : Snake -> Direction -> Snake
-changeDirection { head, tail, direction } newDirection =
-    { head = head
-    , tail = tail
-    , direction = newDirection
-    }
+changeDirection snake newDirection =
+    { snake | direction = newDirection }
 
 
-animateSnake : Snake -> Snake
-animateSnake { head, tail, direction } =
+tickSnake : Snake -> Snake
+tickSnake snake  =
     let
-        move = functionFromDirection direction
+        move = functionFromDirection snake.direction
     in
-        { head = move head
-        , tail = List.map move tail
-        , direction = direction
+        { snake
+          | head = move snake.head
+          , tail = List.map move snake.tail
         }
 
 
