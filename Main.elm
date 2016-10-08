@@ -29,19 +29,16 @@ type Direction
  | West
 
 
-type alias Size = Int
-
 type alias Snake =
     { head: Position
     , tail: List Position
     , direction: Direction
-    , size: Int
     }
 
+initialSnake : Snake
 initialSnake = { head = (0, 0)
-               , tail = [ (0, 1) ]
+               , tail = []
                , direction = North
-               , size = 1
                }
 
 type alias Apple =
