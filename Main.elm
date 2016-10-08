@@ -17,7 +17,9 @@ import Element exposing (..)
 type alias Height = Int
 type alias Width = Int
 
-type alias Position = (Float, Float)
+type alias X = Float
+type alias Y = Float
+type alias Position = (X, Y)
 
 
 type Direction
@@ -120,13 +122,13 @@ animateSnake { head, tail, direction } =
 
 -- The game is over when the snake hits a wall
 hasSnakeDied : Snake -> Width -> Height -> GameState
-hasSnakeDied { head, tail, direction } displayHeight displayWidth =
+hasSnakeDied { head, tail, direction } displayWidth displayHeight =
     let
         (x, y) = head
-        buffer = 30.0
-        maxX = (toFloat displayWidth) / 2 + buffer
+        collisionBuffer = -10
+        maxX = toFloat displayWidth / 2 + collisionBuffer
         minX = negate maxX
-        maxY = (toFloat displayHeight / 2) + buffer
+        maxY = toFloat displayHeight / 2 + collisionBuffer
         minY = negate maxY
     in
         if x > maxX || x < minY || y > maxY || y < minY then
@@ -232,7 +234,7 @@ renderDisplay model =
         , "font-family" => "Helvetica, Arial, sans-serif"
         , "font-size" => "14px"
         , "left" => "300px"
-        , "width" =>  "600px"
+        , "width" =>  "480px"
         , "padding" => "0px"
         , "position" => "absolute"
         , "right" => "0"
@@ -251,7 +253,7 @@ skin = rgb 10 120 10
 
 renderSnake : Snake -> Form
 renderSnake snake =
-        circle 30
+        rect 30 20
           |> make snake.head skin
 
 
