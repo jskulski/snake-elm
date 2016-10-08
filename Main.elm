@@ -115,10 +115,10 @@ animate model =
 animateSnake : Snake -> Snake
 animateSnake { head, tail, direction } =
     let
-        moveFunction = functionFromDirection direction
+        move = functionFromDirection direction
     in
-        { head = moveFunction head
-        , tail = List.map moveFunction tail
+        { head = move head
+        , tail = List.map move tail
         , direction = direction
         }
 
@@ -184,7 +184,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ renderState model
-        , renderBoard model
+        , renderDisplay model
         ]
 
 
@@ -202,8 +202,8 @@ renderState model =
 (=>) : a -> b -> (a, b)
 (=>) = (,)
 
-renderBoard : Model -> Html Msg
-renderBoard model =
+renderDisplay : Model -> Html Msg
+renderDisplay model =
     div
     [ style
         [ "bottom" => "80px"
