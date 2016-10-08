@@ -14,6 +14,9 @@ import Element exposing (..)
 
 -- MODEL
 
+type alias Height = Int
+type alias Width = Int
+
 type alias Position = (Float, Float)
 
 
@@ -36,12 +39,12 @@ type alias Apple =
     }
 
 
-type State = Pre | Playing | Over
+type GameState = Pre | Playing | Over
 
 
 type alias Model =
     { snake: Snake
-    , state: State
+    , gameState: GameState
     }
 
 
@@ -51,7 +54,7 @@ init =
                 , tail = [ (0, 1) ]
                 , direction = North
                 }
-      , state = Pre
+      , gameState = Pre
       }
       , Cmd.none )
 
@@ -74,17 +77,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TimeUpdate dt ->
-            ( model
-              |> animate
-              |> tick
+            (
+              { model
+              | snake = animateSnake model.snake
+              , gameState = hasSnakeDied model.snake displayHeight displayWidth
+              }
             , Cmd.none )
 
         StartGame ->
-            ( { model | state = Playing }
+            ( { model | gameState = Playing }
             , Cmd.none )
 
         EndGame ->
-            ( { model | state = Over }
+            ( { model | gameState = Over }
             , Cmd.none )
 
         Move direction ->
@@ -102,16 +107,6 @@ changeDirection { head, tail, direction } newDirection =
     }
 
 
-tick : Model -> Model
-tick model =
-    model
-
-
-animate : Model -> Model
-animate model =
-    { model | snake = animateSnake model.snake }
-
-
 animateSnake : Snake -> Snake
 animateSnake { head, tail, direction } =
     let
@@ -121,6 +116,12 @@ animateSnake { head, tail, direction } =
         , tail = List.map move tail
         , direction = direction
         }
+
+
+hasSnakeDied : Snake -> Height -> Width -> GameState
+hasSnakeDied { head, tail, direction } height width =
+    Playing
+
 
 
 functionFromDirection : Direction -> (Position -> Position)
@@ -157,7 +158,7 @@ west (x, y) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ if model.state == Playing then
+        [ if model.gameState == Playing then
             AnimationFrame.diffs TimeUpdate
           else
             Sub.none
@@ -183,13 +184,13 @@ keyToMsg keycode =
 view : Model -> Html Msg
 view model =
     div []
-        [ renderState model
+        [ rendergameState model
         , renderDisplay model
         ]
 
 
-renderState : Model -> Html Msg
-renderState model =
+rendergameState : Model -> Html Msg
+rendergameState model =
     div [ style
             [ "position" => "absolute"
             , "bottom" => "0"
@@ -201,6 +202,10 @@ renderState model =
 
 (=>) : a -> b -> (a, b)
 (=>) = (,)
+
+displayHeight = 600
+displayWidth = 480
+
 
 renderDisplay : Model -> Html Msg
 renderDisplay model =
@@ -218,11 +223,12 @@ renderDisplay model =
         ]
     ]
     [ toHtml
-        <| container 600 480 middle
-        <| collage 600 480
+        <| container displayHeight displayWidth middle
+        <| collage displayHeight displayWidth
         <| [ renderSnake model.snake ]
     ]
 
+skin : Color
 skin = rgb 10 120 10
 
 renderSnake : Snake -> Form
