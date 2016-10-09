@@ -2,10 +2,13 @@ module Config exposing (..)
 
 -- CONFIG
 
+displayWidth = 800
 displayHeight = 600
-displayWidth = 480
+rows = 60
+cols = 80
+
+cellSize = 5.0
 
 velocity = 2.5
-cellSize = 5
 
-appleSize = 2
+appleSize = 2.0
