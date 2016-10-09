@@ -1,46 +1,27 @@
 module Main exposing (..)
 
+import Config
+
+-- Domain
+import Data exposing (Height, Width, Position, Direction(..))
+import Apple
+
+-- Elm Libraries
+import Maybe exposing (Maybe(..))
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Html.App as Html
 import AnimationFrame
 import Time exposing (Time)
 import Keyboard exposing (..)
-
-
 import List exposing (take, length, map)
 import Color exposing (..)
 import Collage exposing (..)
-import Element exposing (..)
+import Element
 
 
--- CONFIG
-
-displayHeight : Height
-displayHeight = 600
-
-displayWidth : Width
-displayWidth = 480
-
-velocity = 2.5
-cellSize = 5
 
 -- MODEL
-
-type alias Height = Int
-type alias Width = Int
-
-type alias X = Float
-type alias Y = Float
-type alias Position = (X, Y)
-
-
-type Direction
- = North
- | East
- | South
- | West
-
 
 type alias Snake =
     { head: Position
@@ -50,16 +31,12 @@ type alias Snake =
 
 initialSnake : Snake
 initialSnake = { head = (0, 0)
-               , tail = [(0, -cellSize), (0, -cellSize * 2),
-                        (0, -cellSize), (0, -cellSize * 2),
-                        (0, -cellSize), (0, -cellSize * 2),
-                        (0, -cellSize), (0, -cellSize * 2)]
+               , tail = [(0, -Config.cellSize), (0, -Config.cellSize * 2),
+                        (0, -Config.cellSize), (0, -Config.cellSize * 2),
+                        (0, -Config.cellSize), (0, -Config.cellSize * 2),
+                        (0, -Config.cellSize), (0, -Config.cellSize * 2)]
                , direction = North
                }
-
-type alias Apple =
-    { position: Position
-    }
 
 
 type GameState = Pre | Playing | Over
@@ -68,6 +45,7 @@ type GameState = Pre | Playing | Over
 type alias Model =
     { snake: Snake
     , gameState: GameState
+    , apple: Apple.Model
     }
 
 
@@ -75,6 +53,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { snake = initialSnake
       , gameState = Pre
+      , apple = Apple.init
       }
       , Cmd.none )
 
@@ -87,6 +66,7 @@ type Msg
     | StartGame
     | Move Direction
     | EndGame
+    | AppleMsg Apple.Msg
     | Noop
 
 
@@ -96,11 +76,13 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        AppleMsg msg -> ({ model | apple = Apple.update msg model.apple  }, Cmd.none)
+
         TimeUpdate dt ->
             (
               { model
               | snake = tickSnake model.snake
-              , gameState = hasSnakeDied model.snake displayWidth displayHeight
+              , gameState = hasSnakeDied model.snake Config.displayWidth Config.displayHeight
               }
             , Cmd.none )
 
@@ -152,7 +134,7 @@ hasSnakeDied : Snake -> Width -> Height -> GameState
 hasSnakeDied { head, tail, direction } displayWidth displayHeight =
     let
         (x, y) = head
-        collisionBuffer = -cellSize / 2
+        collisionBuffer = -Config.cellSize / 2
         maxX = toFloat displayWidth / 2 + collisionBuffer
         minX = negate maxX
         maxY = toFloat displayHeight / 2 + collisionBuffer
@@ -177,22 +159,22 @@ functionFromDirection direction =
 
 north : Position -> Position
 north (x, y) =
-    (x, y + velocity)
+    (x, y + Config.velocity)
 
 
 south : Position -> Position
 south (x, y) =
-    (x, y - velocity)
+    (x, y - Config.velocity)
 
 
 east : Position -> Position
 east (x, y) =
-    (x + velocity, y)
+    (x + Config.velocity, y)
 
 
 west : Position -> Position
 west (x, y) =
-    (x - velocity, y)
+    (x - Config.velocity, y)
 
 -- SUBSCRIPTIONS
 
@@ -262,9 +244,9 @@ renderDisplay model =
         , "border" => "1px dashed green"
         ]
     ]
-    [ toHtml
-        <| container displayWidth displayHeight middle
-        <| collage displayWidth displayHeight
+    [ Element.toHtml
+        <| Element.container Config.displayWidth Config.displayHeight Element.middle
+        <| collage Config.displayWidth Config.displayHeight
         <| renderSnake model.snake
     ]
 
@@ -277,7 +259,7 @@ lighterSkin = rgb 20 160 20
 
 renderHead : Position -> Form
 renderHead (x, y) =
-    rect cellSize cellSize
+    rect Config.cellSize Config.cellSize
     |> filled skin
     |> move (x, y)
 
@@ -289,7 +271,7 @@ renderTail tail =
 
 renderTailPart : Position -> Form
 renderTailPart (x, y) =
-    rect cellSize cellSize
+    rect Config.cellSize Config.cellSize
     |> filled skin
     |> move (x, y)
 
