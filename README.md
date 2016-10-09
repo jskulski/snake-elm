@@ -22,8 +22,8 @@ Open in browser
 
 ## RoadMap
 
-- Publish online
 - Grid world display
 - Interaction between apples, snakes and cells (in world)
+- Publish online
 
 
