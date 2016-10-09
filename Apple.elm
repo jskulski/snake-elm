@@ -2,7 +2,7 @@ module Apple exposing (Msg(..), Model, update, init, render)
 
 -- Domain
 import Config exposing (displayWidth, displayHeight)
-import Data exposing (Position)
+import World exposing (Cell)
 import Random exposing (Generator, generate, pair, float)
 
 -- Elm
@@ -12,7 +12,7 @@ import Color
 
 
 type alias Model =
-    { position: Maybe Position
+    { position: Maybe Cell
     }
 
 init : Model
@@ -20,7 +20,7 @@ init : Model
 init = { position = Just (100, 100)}
 
 type Msg
-    = Growth Position
+    = Growth Cell
     | TimeForGrowth
     | Eaten
 

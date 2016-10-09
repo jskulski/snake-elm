@@ -4,7 +4,7 @@ import Config
 
 -- Domain
 import Apple
-import Data exposing (Height, Width, Position, Direction(..))
+import World exposing (Height, Width, Cell, Direction(..))
 
 
 -- Elm Libraries
@@ -25,8 +25,8 @@ import Task
 -- MODEL
 
 type alias Snake =
-    { head: Position
-    , tail: List Position
+    { head: Cell
+    , tail: List Cell
     , direction: Direction
     }
 
@@ -109,10 +109,10 @@ update msg model =
 
         TimeUpdate dt ->
             let
-                cmd = if model.gameState == Paused then
-                        Cmd.none
-                      else
+                cmd = if model.gameState == Playing then
                         message TickGame
+                      else
+                        Cmd.none
             in
                 ( model, cmd )
 
@@ -179,7 +179,7 @@ snakeDied { head, tail, direction } displayWidth displayHeight =
 
 
 
-functionFromDirection : Direction -> (Position -> Position)
+functionFromDirection : Direction -> (Cell -> Cell)
 functionFromDirection direction =
     case direction of
         North -> north
@@ -188,22 +188,22 @@ functionFromDirection direction =
         West -> west
 
 
-north : Position -> Position
+north : Cell -> Cell
 north (x, y) =
     (x, y + Config.velocity)
 
 
-south : Position -> Position
+south : Cell -> Cell
 south (x, y) =
     (x, y - Config.velocity)
 
 
-east : Position -> Position
+east : Cell -> Cell
 east (x, y) =
     (x + Config.velocity, y)
 
 
-west : Position -> Position
+west : Cell -> Cell
 west (x, y) =
     (x - Config.velocity, y)
 
@@ -214,7 +214,10 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [
-        AnimationFrame.diffs TimeUpdate
+        if model.gameState == Playing then
+            AnimationFrame.diffs TimeUpdate
+        else
+            Sub.none
         , Keyboard.downs keyToMsg
         ]
 
@@ -299,19 +302,19 @@ lighterSkin : Color
 lighterSkin = rgb 20 160 20
 
 
-renderHead : Position -> Form
+renderHead : Cell -> Form
 renderHead (x, y) =
     rect Config.cellSize Config.cellSize
     |> filled skin
     |> move (x, y)
 
 
-renderTail : List Position -> List Form
+renderTail : List Cell -> List Form
 renderTail tail =
     List.map renderTailPart tail
 
 
-renderTailPart : Position -> Form
+renderTailPart : Cell -> Form
 renderTailPart (x, y) =
     rect Config.cellSize Config.cellSize
     |> filled skin
@@ -323,7 +326,7 @@ renderSnake snake =
     renderHead snake.head :: renderTail snake.tail
 
 
-make : Position -> Color -> Shape -> Form
+make : Cell -> Color -> Shape -> Form
 make (x, y) color shape =
     shape
         |> filled color
