@@ -121,7 +121,20 @@ update msg model =
 
 changeDirection : Snake -> Direction -> Snake
 changeDirection snake newDirection =
-    { snake | direction = newDirection }
+    { snake | direction = (sameDirectionIfOpposite newDirection snake.direction) }
+
+
+sameDirectionIfOpposite : Direction -> Direction -> Direction
+sameDirectionIfOpposite new old =
+    case new of
+        North -> if old == South then South else new
+        South -> if old == North then North else new
+        East -> if old == West then West else new
+        West -> if old == East then East else new
+
+
+
+
 
 
 tickSnake : Snake -> Snake
