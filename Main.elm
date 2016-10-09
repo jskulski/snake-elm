@@ -8,7 +8,8 @@ import Data exposing (Height, Width, Position, Direction(..))
 
 
 -- Elm Libraries
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, button)
+import Html.Events exposing (onClick)
 import Html.Attributes exposing (style)
 import Html.App as Html
 import AnimationFrame
@@ -18,7 +19,7 @@ import List exposing (take, length, map)
 import Color exposing (..)
 import Collage exposing (..)
 import Element
-
+import Task
 
 
 -- MODEL
@@ -32,14 +33,15 @@ type alias Snake =
 initialSnake : Snake
 initialSnake = { head = (0, 0)
                , tail = [(0, -Config.cellSize), (0, -Config.cellSize * 2),
-                        (0, -Config.cellSize), (0, -Config.cellSize * 2),
-                        (0, -Config.cellSize), (0, -Config.cellSize * 2),
-                        (0, -Config.cellSize), (0, -Config.cellSize * 2)]
+                         (0, -Config.cellSize*3), (0, -Config.cellSize*4),
+                         (0, -Config.cellSize*5), (0, -Config.cellSize*6),
+                         (0, -Config.cellSize*7), (0, -Config.cellSize*8),
+                         (0, -Config.cellSize*9), (0, -Config.cellSize*10)]
                , direction = North
                }
 
 
-type GameState = Pre | Playing | Over
+type GameState = Pre | Playing | Paused | Over
 
 
 type alias Model =
@@ -63,19 +65,42 @@ init =
 
 type Msg
     = TimeUpdate Time
+    | TickGame
+    | PauseGame
     | StartGame
-    | Move Direction
     | EndGame
+    | Move Direction
     | AppleMsg Apple.Msg
     | Noop
 
 
 -- update
 
+{-| This is available as shmookey/cmd-extra but inline here to comprehend
+- @jsk from here https://github.com/adz/elm-game-of-life/blob/master/src/HtmlBoard.elm
+-}
+message : msg -> Cmd msg
+message x =
+    Task.perform identity identity (Task.succeed x)
+
+tickGameState : Model -> GameState
+tickGameState model =
+    if snakeDied model.snake Config.displayWidth Config.displayHeight then
+        Over
+    else
+        model.gameState
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        TickGame ->
+            (
+              { model
+                | snake = tickSnake model.snake
+                , gameState = tickGameState model
+              }
+            , Cmd.none )
+
         AppleMsg subMsg ->
             let
                 (appleModel, appleCmd) = Apple.update subMsg model.apple
@@ -83,12 +108,13 @@ update msg model =
                 ({ model | apple = appleModel}, Cmd.map AppleMsg appleCmd)
 
         TimeUpdate dt ->
-            (
-              { model
-              | snake = tickSnake model.snake
-              , gameState = hasSnakeDied model.snake Config.displayWidth Config.displayHeight
-              }
-            , Cmd.none )
+            let
+                cmd = if model.gameState == Paused then
+                        Cmd.none
+                      else
+                        message TickGame
+            in
+                ( model, cmd )
 
         Move direction ->
             ( { model | snake = changeDirection model.snake direction }
@@ -100,6 +126,10 @@ update msg model =
 
         EndGame ->
             ( { model | gameState = Over }
+            , Cmd.none )
+
+        PauseGame ->
+            ( { model | gameState = Paused }
             , Cmd.none )
 
         Noop -> ( model, Cmd.none )
@@ -134,8 +164,8 @@ allButLast tail =
     take (length tail - 1) tail
 
 -- The game is over when the snake hits a wall
-hasSnakeDied : Snake -> Width -> Height -> GameState
-hasSnakeDied { head, tail, direction } displayWidth displayHeight =
+snakeDied : Snake -> Width -> Height -> Bool
+snakeDied { head, tail, direction } displayWidth displayHeight =
     let
         (x, y) = head
         collisionBuffer = -Config.cellSize / 2
@@ -144,10 +174,7 @@ hasSnakeDied { head, tail, direction } displayWidth displayHeight =
         maxY = toFloat displayHeight / 2 + collisionBuffer
         minY = negate maxY
     in
-        if x > maxX || x < minY || y > maxY || y < minY then
-            Over
-        else
-            Playing
+        x > maxX || x < minY || y > maxY || y < minY
 
 
 
@@ -186,10 +213,8 @@ west (x, y) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ if model.gameState == Playing then
-            AnimationFrame.diffs TimeUpdate
-          else
-            Sub.none
+        [
+        AnimationFrame.diffs TimeUpdate
         , Keyboard.downs keyToMsg
         ]
 
@@ -214,6 +239,19 @@ view model =
     div []
         [ rendergameState model
         , renderDisplay model
+        , renderControlPanel model
+        ]
+
+renderControlPanel : Model -> Html Msg
+renderControlPanel model =
+    div [ style
+            [ "position" => "absolute"
+            , "top" => "0"
+            , "left" => "0"
+            ]
+        ]
+        [ button [onClick TickGame] [ Html.text "Tick" ]
+        , button [onClick PauseGame] [ Html.text "Pause" ]
         ]
 
 
@@ -250,7 +288,7 @@ renderDisplay model =
     ]
     [ Element.toHtml
         <| Element.container Config.displayWidth Config.displayHeight Element.middle
-        <| collage Config.displayWidth Config.displayHeight
+        <| Collage.collage Config.displayWidth Config.displayHeight
         <| Apple.render model.apple :: renderSnake model.snake
     ]
 

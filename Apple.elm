@@ -16,11 +16,14 @@ type alias Model =
     }
 
 init : Model
-init = { position = Nothing }
+-- init = { position = Nothing }
+init = { position = Just (100, 100)}
 
 type Msg
     = Growth Position
     | TimeForGrowth
+    | Eaten
+
 
 
 -- UPDATE
@@ -32,9 +35,11 @@ update msg model =
         Growth (x, y) ->
             ({ model | position = Just (x, y) }, Cmd.none)
 
-
         TimeForGrowth ->
             (model, generate Growth randomPosition)
+
+        Eaten ->
+            ({model | position = Nothing}, Cmd.none)
 
 
 
