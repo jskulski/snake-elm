@@ -53,11 +53,13 @@ randomPosition =
 appleColor = Color.rgb 180 10 10
 
 -- TODO: how do i deal with the maybe here? Maybe Collage.Form?
-render : Model -> Collage.Form
+render : Model -> List Collage.Form
 render { position }=
     case position of
-        Nothing -> Collage.circle 1 |> Collage.filled appleColor
-        Just position -> Collage.circle Config.appleSize
-                         |> Collage.filled appleColor
-                         |> Collage.move (position)
+        Nothing -> []
+        Just position -> [ Collage.circle Config.appleSize
+                           |> Collage.filled appleColor
+                           |> Collage.move (position)
+                         ]
+
 

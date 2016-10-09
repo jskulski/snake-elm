@@ -15,7 +15,7 @@ import Html.App as Html
 import AnimationFrame
 import Time exposing (Time)
 import Keyboard exposing (..)
-import List exposing (take, length, map)
+import List exposing (take, length, map, concat)
 import Color exposing (..)
 import Collage exposing (..)
 import Element
@@ -286,13 +286,15 @@ renderDisplay model =
         , "position" => "absolute"
         , "right" => "0"
         , "top" => "0"
-        , "border" => "1px dashed green"
         ]
     ]
     [ Element.toHtml
         <| Element.container Config.displayWidth Config.displayHeight Element.middle
         <| Collage.collage Config.displayWidth Config.displayHeight
-        <| Apple.render model.apple :: renderSnake model.snake
+        <| List.concat [ renderBorder
+                       , Apple.render model.apple
+                       , renderSnake model.snake
+                       ]
     ]
 
 skin : Color
@@ -324,6 +326,13 @@ renderTailPart (x, y) =
 renderSnake : Snake -> List Form
 renderSnake snake =
     renderHead snake.head :: renderTail snake.tail
+
+renderBorder : List Form
+renderBorder =
+    [ rect Config.displayWidth Config.displayHeight
+      |> outlined (dashed Color.black)
+    ]
+
 
 
 make : Cell -> Color -> Shape -> Form
