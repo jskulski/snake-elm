@@ -7,9 +7,22 @@ import AnimationFrame
 import Time exposing (Time)
 import Keyboard exposing (..)
 
+
+import List exposing (take, length, map)
 import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
+
+
+-- CONFIG
+
+displayHeight : Height
+displayHeight = 600
+
+displayWidth : Width
+displayWidth = 480
+
+gridSize = 10
 
 
 -- MODEL
@@ -37,7 +50,10 @@ type alias Snake =
 
 initialSnake : Snake
 initialSnake = { head = (0, 0)
-               , tail = [(0, 20)]
+               , tail = [(0, -gridSize), (0, -gridSize * 2),
+                        (0, -gridSize), (0, -gridSize * 2),
+                        (0, -gridSize), (0, -gridSize * 2),
+                        (0, -gridSize), (0, -gridSize * 2)]
                , direction = North
                }
 
@@ -88,16 +104,16 @@ update msg model =
               }
             , Cmd.none )
 
+        Move direction ->
+            ( { model | snake = changeDirection model.snake direction }
+            , Cmd.none )
+
         StartGame ->
             ( { model | gameState = Playing }
             , Cmd.none )
 
         EndGame ->
             ( { model | gameState = Over }
-            , Cmd.none )
-
-        Move direction ->
-            ( { model | snake = changeDirection model.snake direction }
             , Cmd.none )
 
         Noop -> ( model, Cmd.none )
@@ -115,16 +131,19 @@ tickSnake snake  =
     in
         { snake
           | head = move snake.head
-          , tail = List.map move snake.tail
+          , tail = (snake.head :: allButLast snake.tail)
         }
 
+allButLast : List a -> List a
+allButLast tail =
+    take (length tail - 1) tail
 
 -- The game is over when the snake hits a wall
 hasSnakeDied : Snake -> Width -> Height -> GameState
 hasSnakeDied { head, tail, direction } displayWidth displayHeight =
     let
         (x, y) = head
-        collisionBuffer = -10
+        collisionBuffer = -gridSize / 2
         maxX = toFloat displayWidth / 2 + collisionBuffer
         minX = negate maxX
         maxY = toFloat displayHeight / 2 + collisionBuffer
@@ -149,22 +168,22 @@ functionFromDirection direction =
 
 north : Position -> Position
 north (x, y) =
-    (x, y + 1)
+    (x, y + gridSize)
 
 
 south : Position -> Position
 south (x, y) =
-    (x, y - 1)
+    (x, y - gridSize)
 
 
 east : Position -> Position
 east (x, y) =
-    (x + 1, y)
+    (x + gridSize, y)
 
 
 west : Position -> Position
 west (x, y) =
-    (x - 1, y)
+    (x - gridSize, y)
 
 -- SUBSCRIPTIONS
 
@@ -217,13 +236,6 @@ rendergameState model =
 (=>) : a -> b -> (a, b)
 (=>) = (,)
 
-displayHeight : Height
-displayHeight = 600
-
-displayWidth : Width
-displayWidth = 480
-
-
 renderDisplay : Model -> Html Msg
 renderDisplay model =
     div
@@ -256,22 +268,22 @@ lighterSkin = rgb 20 160 20
 
 renderHead : Position -> Form
 renderHead (x, y) =
-    rect 10 10
+    rect gridSize gridSize
     |> filled skin
     |> move (x, y)
 
 
 renderTail : List Position -> List Form
 renderTail tail =
-    case tail of
-        [] -> []
-        first::_ -> let
-                    (x, y) = first
-                 in
-                    [ rect 10 10
-                      |> filled skin
-                      |> move (x, y)
-                    ]
+    List.map renderTailPart tail
+
+
+renderTailPart : Position -> Form
+renderTailPart (x, y) =
+    rect gridSize gridSize
+    |> filled skin
+    |> move (x, y)
+
 
 renderSnake : Snake -> List Form
 renderSnake snake =
