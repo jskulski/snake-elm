@@ -22,8 +22,8 @@ displayHeight = 600
 displayWidth : Width
 displayWidth = 480
 
-gridSize = 10
-
+velocity = 2.5
+cellSize = 5
 
 -- MODEL
 
@@ -50,10 +50,10 @@ type alias Snake =
 
 initialSnake : Snake
 initialSnake = { head = (0, 0)
-               , tail = [(0, -gridSize), (0, -gridSize * 2),
-                        (0, -gridSize), (0, -gridSize * 2),
-                        (0, -gridSize), (0, -gridSize * 2),
-                        (0, -gridSize), (0, -gridSize * 2)]
+               , tail = [(0, -cellSize), (0, -cellSize * 2),
+                        (0, -cellSize), (0, -cellSize * 2),
+                        (0, -cellSize), (0, -cellSize * 2),
+                        (0, -cellSize), (0, -cellSize * 2)]
                , direction = North
                }
 
@@ -133,10 +133,6 @@ sameDirectionIfOpposite new old =
         West -> if old == East then East else new
 
 
-
-
-
-
 tickSnake : Snake -> Snake
 tickSnake snake  =
     let
@@ -156,7 +152,7 @@ hasSnakeDied : Snake -> Width -> Height -> GameState
 hasSnakeDied { head, tail, direction } displayWidth displayHeight =
     let
         (x, y) = head
-        collisionBuffer = -gridSize / 2
+        collisionBuffer = -cellSize / 2
         maxX = toFloat displayWidth / 2 + collisionBuffer
         minX = negate maxX
         maxY = toFloat displayHeight / 2 + collisionBuffer
@@ -181,22 +177,22 @@ functionFromDirection direction =
 
 north : Position -> Position
 north (x, y) =
-    (x, y + gridSize)
+    (x, y + velocity)
 
 
 south : Position -> Position
 south (x, y) =
-    (x, y - gridSize)
+    (x, y - velocity)
 
 
 east : Position -> Position
 east (x, y) =
-    (x + gridSize, y)
+    (x + velocity, y)
 
 
 west : Position -> Position
 west (x, y) =
-    (x - gridSize, y)
+    (x - velocity, y)
 
 -- SUBSCRIPTIONS
 
@@ -281,7 +277,7 @@ lighterSkin = rgb 20 160 20
 
 renderHead : Position -> Form
 renderHead (x, y) =
-    rect gridSize gridSize
+    rect cellSize cellSize
     |> filled skin
     |> move (x, y)
 
@@ -293,7 +289,7 @@ renderTail tail =
 
 renderTailPart : Position -> Form
 renderTailPart (x, y) =
-    rect gridSize gridSize
+    rect cellSize cellSize
     |> filled skin
     |> move (x, y)
 
