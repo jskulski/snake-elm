@@ -3,11 +3,11 @@ module Main exposing (..)
 import Config
 
 -- Domain
-import Data exposing (Height, Width, Position, Direction(..))
 import Apple
+import Data exposing (Height, Width, Position, Direction(..))
+
 
 -- Elm Libraries
-import Maybe exposing (Maybe(..))
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Html.App as Html
@@ -247,7 +247,7 @@ renderDisplay model =
     [ Element.toHtml
         <| Element.container Config.displayWidth Config.displayHeight Element.middle
         <| collage Config.displayWidth Config.displayHeight
-        <| renderSnake model.snake
+        <| Apple.render model.apple :: renderSnake model.snake
     ]
 
 skin : Color

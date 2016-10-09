@@ -7,3 +7,5 @@ displayWidth = 480
 
 velocity = 2.5
 cellSize = 5
+
+appleSize = 2
