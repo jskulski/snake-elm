@@ -76,7 +76,11 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AppleMsg msg -> ({ model | apple = Apple.update msg model.apple  }, Cmd.none)
+        AppleMsg subMsg ->
+            let
+                (appleModel, appleCmd) = Apple.update subMsg model.apple
+            in
+                ({ model | apple = appleModel}, Cmd.map AppleMsg appleCmd)
 
         TimeUpdate dt ->
             (
